@@ -8,14 +8,14 @@
 import SwiftUI
 
 struct ContentView: View {
-    let emojis = ["🍏", "🍎", "🍐", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🫐", "🍈", "🍒", "🍑", "🥭", "🍍", "🥥", "🥝", "🍅", "🍆", "🥑", "🥦"]
-    @State var emojiCount = 14
+    @State var emojis: [String] = randomEmojis(for: ThemeType.random())
     
     var body: some View {
         VStack {
+            Text("Memorize!").font(.title)
             ScrollView {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 70))], content: {
-                    ForEach(emojis[0..<emojiCount], id: \.self) { emoji in
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: widthThatBestFits(cardCount: emojis.count)))], content: {
+                    ForEach(emojis, id: \.self) { emoji in
                         CardView(content: emoji, isFaceUp: true)
                             .aspectRatio(2/3, contentMode: .fill)
                     }
@@ -24,9 +24,13 @@ struct ContentView: View {
             .foregroundColor(.red)
             Spacer()
             HStack {
-                removeButton
                 Spacer()
-                addButton
+                vehicleButton
+                Spacer(minLength: 50)
+                fruitButton
+                Spacer(minLength: 50)
+                animalButton
+                Spacer()
             }
             .font(.largeTitle)
             .padding(.horizontal)
@@ -34,24 +38,43 @@ struct ContentView: View {
         .padding(.horizontal)
     }
     
-    var removeButton: some View {
+    var vehicleButton: some View {
         Button {
-            if emojiCount > 0 {
-                emojiCount -= 1
-            }
+            emojis = randomEmojis(for: .vehicle)
         } label: {
-            Image(systemName: "minus.circle")
+            VStack {
+                Image(systemName: "car.fill").font(.largeTitle)
+                Text("Vehicle").font(.caption)
+            }
         }
     }
     
-    var addButton: some View {
+    var fruitButton: some View {
         Button {
-            if emojiCount < emojis.count {
-                emojiCount += 1
-            }
+            emojis = randomEmojis(for: .fruit)
         } label: {
-            Image(systemName: "plus.circle")
+            VStack {
+                Image(systemName: "leaf.fill").font(.largeTitle)
+                Text("Fruit").font(.caption)
+            }
         }
+    }
+    
+    var animalButton: some View {
+        Button {
+            emojis = randomEmojis(for: .animal)
+        } label: {
+            VStack {
+                Image(systemName: "hare.fill").font(.largeTitle)
+                Text("Animal").font(.caption)
+            }
+        }
+    }
+    
+    // Extra credit 2: Smart width
+    func widthThatBestFits(cardCount: Int) -> CGFloat {
+        let x = CGFloat(cardCount)
+        return x < 24 ? 0.35 * x * x - 13 * x + 177 : 490 / (x - 10) + 30
     }
 }
 
@@ -77,6 +100,35 @@ struct CardView: View {
 }
 
 
+// Extra credit 1: Random number of cards
+func randomEmojis(for theme: ThemeType) -> [String] {
+    var emojis: [String] = []
+    switch theme {
+    case .vehicle:
+        emojis = ["🚗", "🚕", "🚙", "🚌", "🚎", "🏎", "🚓", "🚑", "🚒", "🚐", "🛻", "🚚", "🚛", "🚜", "🛵", "🏍", "🛺"]
+    case .fruit:
+        emojis = ["🍏", "🍎", "🍐", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🫐", "🍈", "🍒", "🍑", "🥭", "🍍", "🥥", "🥝", "🥑", "🫒"]
+    case .animal:
+        emojis = ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐻‍❄️", "🐨", "🐯", "🦁", "🐮", "🐷", "🐽", "🐸", "🐵", "🐺", "🐗", "🐴", "🦄", "🐝", "🦋", "🐌", "🐙", "🦑", "🐡", "🐳"]
+    }
+    // The actual card matching game should always have an even number of cards.
+    return Array(emojis.shuffled()[0..<2*Int.random(in: 2..<emojis.count/2)])
+}
+
+enum ThemeType: CaseIterable {
+    case vehicle
+    case animal
+    case fruit
+    
+    static func random<G: RandomNumberGenerator>(using generator: inout G) -> ThemeType {
+        return ThemeType.allCases.randomElement(using: &generator)!
+    }
+
+    static func random() -> ThemeType {
+        var g = SystemRandomNumberGenerator()
+        return ThemeType.random(using: &g)
+    }
+}
 
 
 

@@ -118,10 +118,24 @@ struct EmojiMemoryGameView: View {
 struct CardView: View {
     let card: EmojiMemoryGame.Card
     
+    @State var animatedBonusRemaining: Double = 0
+    
     var body: some View {
         GeometryReader(content: { geometry in
             ZStack {
-                Pie(startAngle: Angle(degrees: 0-90), endAngle: Angle(degrees: 110-90))
+                Group {
+                    if card.isConsumingBonusTime {
+                        Pie(startAngle: Angle(degrees: 0-90), endAngle: Angle(degrees: 360*(1-animatedBonusRemaining)-90))
+                            .onAppear() {
+                                animatedBonusRemaining = card.bonusRemaining
+                                withAnimation(.linear(duration: card.bonusTimeRemaining)) {
+                                    animatedBonusRemaining = 0
+                                }
+                            }
+                    } else {
+                        Pie(startAngle: Angle(degrees: 0-90), endAngle: Angle(degrees: 360*(1-card.bonusRemaining)-90))
+                    }
+                }
                     .padding(DrawingConstants.piePadding)
                     .opacity(DrawingConstants.pieOpacity)
                 Text(card.content)

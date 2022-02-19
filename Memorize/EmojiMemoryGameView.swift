@@ -20,10 +20,14 @@ struct EmojiMemoryGameView: View {
                 HStack {
                     restart
                     Spacer()
+                    Text("\(game.themeName): \(game.points)")
+                        .animation(.none)
+                    Spacer()
                     shuffle
                 }
             }
             deckBody
+                .padding([.bottom], CardConstants.deckPaddingBottom)
         }
         .padding()
     }
@@ -65,7 +69,7 @@ struct EmojiMemoryGameView: View {
                     }
             }
         }
-        .foregroundColor(CardConstants.color)
+        .foregroundColor(game.color)
     }
     
     var deckBody: some View {
@@ -78,12 +82,16 @@ struct EmojiMemoryGameView: View {
             }
         }
         .frame(width: CardConstants.undealtWidth, height: CardConstants.undealtHeight)
-        .foregroundColor(CardConstants.color)
+        .foregroundColor(game.color)
         .onTapGesture {
-            for card in game.cards {
-                withAnimation(dealAnimation(for: card)) {
-                    deal(card)
-                }
+            dealCards()
+        }
+    }
+    
+    func dealCards() {
+        for card in game.cards {
+            withAnimation(dealAnimation(for: card)) {
+                deal(card)
             }
         }
     }
@@ -106,12 +114,12 @@ struct EmojiMemoryGameView: View {
     }
     
     private struct CardConstants {
-        static let color = Color.red
         static let aspectRatio: CGFloat = 2/3
         static let dealDuration: Double = 0.5
         static let totalDealDuration: Double = 2
         static let undealtHeight: CGFloat = 90
         static let undealtWidth = undealtHeight * aspectRatio
+        static let deckPaddingBottom: CGFloat = 24
     }
 }
 

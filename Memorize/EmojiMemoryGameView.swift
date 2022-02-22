@@ -18,18 +18,23 @@ struct EmojiMemoryGameView: View {
             VStack {
                 gameBody
                 HStack {
-                    restart
+                    restartButton
                     Spacer()
-                    Text("\(game.themeName): \(game.points)")
-                        .animation(.none)
-                    Spacer()
-                    shuffle
+                    shuffleButton
                 }
             }
             deckBody
-                .padding([.bottom], CardConstants.deckPaddingBottom)
         }
         .padding()
+        .navigationTitle(game.themeName)
+        .toolbar {
+            Text("Points: \(game.points)").animation(.none)
+        }
+        .onAppear {
+            if game.ongoing {
+                dealt = Set<Int>(game.cards.map { $0.id })
+            }
+        }
     }
     
     private func deal(_ card: EmojiMemoryGame.Card) {
@@ -69,7 +74,7 @@ struct EmojiMemoryGameView: View {
                     }
             }
         }
-        .foregroundColor(game.color)
+        .foregroundColor(game.themeColor)
     }
     
     var deckBody: some View {
@@ -82,13 +87,14 @@ struct EmojiMemoryGameView: View {
             }
         }
         .frame(width: CardConstants.undealtWidth, height: CardConstants.undealtHeight)
-        .foregroundColor(game.color)
+        .foregroundColor(game.themeColor)
         .onTapGesture {
             dealCards()
         }
     }
     
     func dealCards() {
+        game.start()
         for card in game.cards {
             withAnimation(dealAnimation(for: card)) {
                 deal(card)
@@ -96,7 +102,7 @@ struct EmojiMemoryGameView: View {
         }
     }
     
-    var shuffle: some View {
+    var shuffleButton: some View {
         Button("Shuffle") {
             withAnimation {
                 game.shuffle()
@@ -104,7 +110,7 @@ struct EmojiMemoryGameView: View {
         }
     }
     
-    var restart: some View {
+    var restartButton: some View {
         Button("Restart") {
             withAnimation {
                 dealt = []
@@ -119,7 +125,6 @@ struct EmojiMemoryGameView: View {
         static let totalDealDuration: Double = 2
         static let undealtHeight: CGFloat = 90
         static let undealtWidth = undealtHeight * aspectRatio
-        static let deckPaddingBottom: CGFloat = 24
     }
 }
 
@@ -148,7 +153,7 @@ struct CardView: View {
                     .opacity(DrawingConstants.pieOpacity)
                 Text(card.content)
                     .rotationEffect(Angle.degrees(card.isMatched ? 360 : 0))
-                    .animation(.linear(duration: 1).repeatForever(autoreverses: false))
+                    .animation(.linear(duration: 1).repeatForever(autoreverses: false), value: card.isMatched)
                     .padding(5)
                     .font(Font.system(size: DrawingConstants.fontSize))
                     .scaleEffect(scale(thatFits: geometry.size))
@@ -177,7 +182,7 @@ struct CardView: View {
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        let game = EmojiMemoryGame()
+        let game = EmojiMemoryGame(theme: ThemeStore(name: "Preview").themes[0])
         game.choose(game.cards.first!)
         return EmojiMemoryGameView(game: game)
     }

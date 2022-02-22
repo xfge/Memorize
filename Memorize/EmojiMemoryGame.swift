@@ -11,21 +11,21 @@ class EmojiMemoryGame: ObservableObject {
     typealias Card = MemoryGame<String>.Card
 
     static func createMemoryGame(theme: EmojiTheme) -> MemoryGame<String> {
-        let randomEmojis = theme.emojis.shuffled()
-        // Extra credit 2: If the default count of pairs is nil, the theme will use a random number.
-        return MemoryGame(numberOfPairsOfCards: theme.numberOfPairs ?? Int.random(in: 2..<theme.emojis.count)) { pairIndex in
-            // Required task 5: No dead emoji
-            // Hint 15/16: closures catch local variables
-            randomEmojis[pairIndex]
+        let emojis = theme.emojis.shuffled()
+        let randomEmojis = emojis.shuffled()
+        return MemoryGame(numberOfPairsOfCards: theme.numberOfPairs) {
+            String(randomEmojis[randomEmojis.index(randomEmojis.startIndex, offsetBy: $0)])
         }
     }
     
     @Published private var model: MemoryGame<String>
     
-    private var theme: EmojiTheme
+    private var theme: EmojiTheme {
+        didSet { restart() }
+    }
     
-    init() {
-        theme = EmojiTheme.themes.randomElement()!
+    init(theme: EmojiTheme) {
+        self.theme = theme
         model = EmojiMemoryGame.createMemoryGame(theme: theme)
     }
     
@@ -37,28 +37,18 @@ class EmojiMemoryGame: ObservableObject {
         model.points
     }
     
+    var ongoing: Bool {
+        model.ongoing
+    }
+    
+    // MARK: - Theme properties
+    
     var themeName: String {
         theme.name
     }
     
-    // Hint 4/5: Let the theme model be UI-independent and the view model be the interpreter.
-    var color: Color {
-        switch theme.color {
-        case "blue":
-            return .blue
-        case "yellow":
-            return .yellow
-        case "purple":
-            return .purple
-        case "red":
-            return .red
-        case "orange":
-            return .orange
-        case "pink":
-            return .pink
-        default:
-            return .gray
-        }
+    var themeColor: Color {
+        theme.color
     }
     
     // MARK: - Intents
@@ -72,10 +62,10 @@ class EmojiMemoryGame: ObservableObject {
     }
     
     func restart() {
-        // Required task 11: Restart with a random theme
-        // Hint 14: Allow duplicate code with int()
-        theme = EmojiTheme.themes.randomElement()!
         model = EmojiMemoryGame.createMemoryGame(theme: theme)
     }
     
+    func start() {
+        model.start()
+    }
 }

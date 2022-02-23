@@ -16,11 +16,6 @@ Stanford CS193p Spring 2021 (Assignment 1, 2&amp;6)
 
 ## Screenshots
 
-
-
-
-
-
 | Add a new theme | View all themes |
 | ----------- | ----------- |
 | ![IMG_5178](https://user-images.githubusercontent.com/12323189/155358573-42356d8b-38a7-4cf4-ae0e-dc956736234c.PNG) | ![IMG_5179](https://user-images.githubusercontent.com/12323189/155358612-f252dd13-eb20-4360-8476-e5e0b929f5c6.PNG) |

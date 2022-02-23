@@ -11,6 +11,7 @@ struct MemoryGame<CardContent> where CardContent: Equatable {
     private(set) var cards: [Card] = []
     private(set) var points = 0
     private(set) var ongoing = false
+    private(set) var isSuccessMatch = false
     
     private var indexOfTheOneAndOnlyFaceUpCard: Int? {
         get { cards.indices.filter({ cards[$0].isFaceUp }).oneAndOnly }
@@ -36,13 +37,15 @@ struct MemoryGame<CardContent> where CardContent: Equatable {
                 if (cards[indexOfPotentialMatchCard].content == card.content) {
                     cards[indexOfPotentialMatchCard].isMatched = true
                     cards[cardIndex].isMatched = true
-                    points += 2 * factor
+                    points += factor
+                    isSuccessMatch = true
                 } else {
                     for index in [cardIndex, indexOfPotentialMatchCard] {
                         if let viewNumber = cardViewNumbers[index] {
                             points -= 2 * viewNumber
                         }
                     }
+                    isSuccessMatch = false
                 }
                 cards[cardIndex].isFaceUp = true
             } else {
@@ -54,6 +57,7 @@ struct MemoryGame<CardContent> where CardContent: Equatable {
                     cards[cardIndex].isFaceUp = false
                 }
                 indexOfTheOneAndOnlyFaceUpCard = cardIndex
+                isSuccessMatch = false
             }
             cards[cardIndex].isFaceUp = true
             lastCardChosenAt = Date()
@@ -66,6 +70,11 @@ struct MemoryGame<CardContent> where CardContent: Equatable {
     
     mutating func start() {
         ongoing = true
+    }
+    
+    // When all cards are matched, display all of them
+    mutating func displayAllCards() {
+        cards.indices.forEach { cards[$0].isFaceUp = true }
     }
     
     struct Card: Identifiable, Hashable {

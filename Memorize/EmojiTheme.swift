@@ -12,6 +12,7 @@ struct EmojiTheme: Identifiable, Hashable, Codable {
     var numberOfPairs: Int
     var rgbaColor: RGBAColor
     var emojis: String
+    var removedEmojis: String = ""
     
     var id = UUID()
     

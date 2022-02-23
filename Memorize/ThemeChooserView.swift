@@ -56,6 +56,7 @@ struct ThemeChooserView: View {
             })
             .environment(\.editMode, $editMode)
         }
+        .navigationViewStyle(DoubleColumnNavigationViewStyle())
     }
     
     var addButton: some View {

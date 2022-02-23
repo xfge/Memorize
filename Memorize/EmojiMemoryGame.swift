@@ -41,6 +41,14 @@ class EmojiMemoryGame: ObservableObject {
         model.ongoing
     }
     
+    var isSuccessMatch: Bool {
+        model.isSuccessMatch
+    }
+    
+    var isGameCompleted: Bool {
+        model.cards.filter { !$0.isMatched }.isEmpty
+    }
+    
     // MARK: - Theme properties
     
     var themeName: String {
@@ -67,5 +75,9 @@ class EmojiMemoryGame: ObservableObject {
     
     func start() {
         model.start()
+    }
+    
+    func completeGame() {
+        model.displayAllCards()
     }
 }

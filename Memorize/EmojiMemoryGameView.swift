@@ -28,15 +28,24 @@ struct EmojiMemoryGameView: View {
         .padding()
         .navigationTitle(game.themeName)
         .toolbar {
-            Text("Points: \(game.points)").animation(.none)
+            Text("Points: \(game.points)")
         }
         .onAppear {
             if game.ongoing {
                 dealt = Set<Int>(game.cards.map { $0.id })
             }
         }
+        .alert("Congratulations!", isPresented: $isAlertPresented) {
+            Button("Restart") {
+                restart()
+            }
+        } message: {
+            Text("You've got \(game.points) points.")
+        }
     }
     
+    @State private var isAlertPresented: Bool = false
+
     private func deal(_ card: EmojiMemoryGame.Card) {
         dealt.insert(card.id)
     }
@@ -68,9 +77,7 @@ struct EmojiMemoryGameView: View {
                     .transition(AnyTransition.asymmetric(insertion: .identity, removal: .scale))
                     .zIndex(zIndex(of: card))
                     .onTapGesture {
-                        withAnimation {
-                            game.choose(card)
-                        }
+                        tap(on: card)
                     }
             }
         }
@@ -93,7 +100,23 @@ struct EmojiMemoryGameView: View {
         }
     }
     
+    func tap(on card: EmojiMemoryGame.Card) {
+        withAnimation {
+            game.choose(card)
+            if game.isSuccessMatch  {
+                TapticEngine.notification.feedback(.success)
+            } else {
+                TapticEngine.selection.feedback()
+            }
+            if game.isGameCompleted {
+                isAlertPresented = true
+                game.completeGame()
+            }
+        }
+    }
+    
     func dealCards() {
+        TapticEngine.impact.feedback(.light)
         game.start()
         for card in game.cards {
             withAnimation(dealAnimation(for: card)) {
@@ -104,18 +127,26 @@ struct EmojiMemoryGameView: View {
     
     var shuffleButton: some View {
         Button("Shuffle") {
+            TapticEngine.impact.feedback(.light)
             withAnimation {
                 game.shuffle()
             }
         }
+        .disabled(dealt.isEmpty)
     }
     
     var restartButton: some View {
         Button("Restart") {
-            withAnimation {
-                dealt = []
-                game.restart()
-            }
+            restart()
+        }
+        .disabled(dealt.isEmpty)
+    }
+    
+    func restart() {
+        TapticEngine.impact.feedback(.medium)
+        withAnimation {
+            dealt = []
+            game.restart()
         }
     }
     
@@ -132,6 +163,7 @@ struct CardView: View {
     let card: EmojiMemoryGame.Card
     
     @State var animatedBonusRemaining: Double = 0
+    @State var rotationDegree: Double = 0
     
     var body: some View {
         GeometryReader(content: { geometry in
@@ -152,11 +184,15 @@ struct CardView: View {
                     .padding(DrawingConstants.piePadding)
                     .opacity(DrawingConstants.pieOpacity)
                 Text(card.content)
-                    .rotationEffect(Angle.degrees(card.isMatched ? 360 : 0))
-                    .animation(.linear(duration: 1).repeatForever(autoreverses: false), value: card.isMatched)
+                    .rotationEffect(Angle.degrees(rotationDegree))
                     .padding(5)
                     .font(Font.system(size: DrawingConstants.fontSize))
                     .scaleEffect(scale(thatFits: geometry.size))
+                    .onChange(of: card.isMatched) { isMatched in
+                        withAnimation(isMatched ? .linear(duration: 1).repeatForever(autoreverses: false) : .default) {
+                            rotationDegree = isMatched ? 360 : 0
+                        }
+                    }
             }
             .cardify(isFaceUp: card.isFaceUp)
         })
